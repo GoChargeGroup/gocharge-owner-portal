@@ -8,20 +8,23 @@ export default function RootLayout() {
   const router = useRouter();
 
   // Function to handle redirection to the index page
-  const handleRedirect = () => {
+  const handleRedirectToIndex = () => {
     router.push('/');
   };
-
+  const handleRedirectToMain = () => {
+    router.push('(station)/main');
+  };
   return (
     <GlobalProvider>
       <View style={styles.container}>
-        {/* Redirect to Index */}
-        <TouchableOpacity onPress={handleRedirect} style={styles.redirectButton}>
-          <Image 
-            source={ icons.light }
-            style={styles.logo}
-          />
-         
+        {/* Top Left - Redirect to Index */}
+        <TouchableOpacity onPress={handleRedirectToIndex} style={styles.topLeftIcon}>
+          <Image source={icons.light} style={styles.iconImage} />
+        </TouchableOpacity>
+
+        {/* Top Right - Redirect to Main */}
+        <TouchableOpacity onPress={handleRedirectToMain} style={styles.topRightIcon}>
+          <Image source={icons.home} style={styles.iconImage} />
         </TouchableOpacity>
 
         <Stack>
@@ -38,20 +41,23 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: 'relative',
   },
-  redirectButton: {
-    alignSelf: 'center',
-    padding: 10,
-    marginVertical: 20,
+  topLeftIcon: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
   },
-  logo: {
-    width: 100, 
-    height: 100,
+  topRightIcon: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 1,
+  },
+  iconImage: {
+    width: 30, 
+    height: 30,
     resizeMode: 'contain',
-  },
-  redirectText: {
-    fontSize: 16,
-    color: '#1E90FF',
-    textDecorationLine: 'underline',
   },
 });
