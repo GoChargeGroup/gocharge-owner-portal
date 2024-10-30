@@ -10,20 +10,25 @@ import { useGlobalContext } from '@/context/GlobalProvider';
 import { signup } from '@/lib/authService';
 
 const SignUp = () => {
+  const { setUser, setIsLoggedIn } = useGlobalContext();
+
   const [form, setForm] = useState({
     username: '',
     email: '',
     password: '',
-    role: 'user',
+    role: 'owner',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
-
+  const showAlert = (title, message) => {
+      window.alert(`${title}: ${message}`);
+    
+  };
   const submit = async () => {
     setModalVisible(false);
     if (!form.username || !form.email || !form.password) {
-      Alert.alert('Error', 'Please fill in all the fields');
+      showAlert('Error', 'Please fill in all the fields');
       return;
     }
     if (!verifyInput()) {
@@ -32,10 +37,12 @@ const SignUp = () => {
     setIsSubmitting(true);
     try {
       const user = await signup(form.username, form.password, form.email.toLowerCase(), form.role);
-      Alert.alert('Success!', 'Your account has been successfully created');
+      setIsLoggedIn(true);
+      setUser(user);
+      showAlert('Success!', 'Your account has been successfully created');
       router.push('/profile');
     } catch (error) {
-      Alert.alert('Error', error.message);
+      showAlert('Error', error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -44,11 +51,11 @@ const SignUp = () => {
   function verifyInput() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (form.username.includes(' ')) {
-      Alert.alert('Error', 'Username cannot contain spaces');
+      showAlert('Error', 'Username cannot contain spaces');
       return false;
     }
     if (!emailRegex.test(form.email)) {
-      Alert.alert('Error', 'Email is invalid');
+      showAlert('Error', 'Email is invalid');
       return false;
     } else return true;
   }

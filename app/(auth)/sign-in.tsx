@@ -1,10 +1,11 @@
-import { View, Text, Alert, ScrollView } from 'react-native';
 import React, { useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Link, router } from 'expo-router';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
+import CustomAlert from '@/components/CustomAlert';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { login } from '@/lib/authService';
 
@@ -14,34 +15,41 @@ const SignIn = () => {
     password: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
- 
+  const [alert, setAlert] = useState({ visible: false, title: '', message: '', actions: [] });
+  const { setIsLoggedIn, setUser } = useGlobalContext();
+
+  const showAlert = (title, message, actions = []) => {
+    setAlert({ visible: true, title, message, actions });
+  };
+
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, visible: false });
+  };
 
   const submit = async () => {
     if (!form.username || !form.password) {
-      Alert.alert('Error', 'Please fill in all the fields');
+      showAlert('Error', 'Please fill in all the fields');
       return;
     }
     setIsSubmitting(true);
     try {
       const user = await login(form.username, form.password);
-      
-      Alert.alert('Success', 'Login successful!');
-      router.push('/');
+      setIsLoggedIn(true);
+      setUser(user);
+      showAlert('Success', 'Login successful!', [
+        { text: 'OK', onPress: () => router.push('/main') }
+      ]);
     } catch (error) {
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to login',
-        [
-          { text: 'Try Again', style: 'cancel' },
-          {
-            text: 'Reset Password',
-            onPress: () => {
-              router.push('/reset-password');
-            },
+      showAlert('Error', error.message || 'Failed to login', [
+        { text: 'Try Again', style: 'cancel', onPress: handleCloseAlert },
+        {
+          text: 'Reset Password',
+          onPress: () => {
+            handleCloseAlert();
+            router.push('/reset-password');
           },
-        ],
-        { cancelable: true }
-      );
+        },
+      ]);
     } finally {
       setIsSubmitting(false);
     }
@@ -88,6 +96,13 @@ const SignIn = () => {
             </View>
           </View>
         </ScrollView>
+        <CustomAlert
+          visible={alert.visible}
+          title={alert.title}
+          message={alert.message}
+          onClose={handleCloseAlert}
+          actions={alert.actions}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );
