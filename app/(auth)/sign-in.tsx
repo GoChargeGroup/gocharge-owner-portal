@@ -37,7 +37,13 @@ const SignIn = () => {
       setIsLoggedIn(true);
       setUser(user);
       showAlert('Success', 'Login successful!', [
-        { text: 'OK', onPress: () => router.push('/main') }
+        {
+          text: 'OK',
+          onPress: () => {
+            handleCloseAlert();  
+            router.push('/main');  
+          },
+        },
       ]);
     } catch (error) {
       showAlert('Error', error.message || 'Failed to login', [
@@ -54,6 +60,7 @@ const SignIn = () => {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
