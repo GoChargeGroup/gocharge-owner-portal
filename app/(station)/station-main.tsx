@@ -1,29 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { router, useNavigation, useRouter } from 'expo-router';
-// import { getUserChargers } from '@/lib/stationService'; //fetch chargers
+import { getUserChargers } from '@/lib/authService';
 
 const StationMainPage = () => {
  
-  const [chargers, setChargers] = useState([]);
+  const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Fetch user's chargers on component mount
   useEffect(() => {
     const fetchChargers = async () => {
       try {
-        // const userChargers = await getUserChargers(); // Fetch chargers belonging to the user
-        // setChargers(userChargers);
+        const userStations = await getUserChargers(); 
+        console.log(userStations);
+        setStations(userStations || []); 
       } catch (error) {
         console.error("Error fetching chargers:", error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchChargers();
   }, []);
+  
 
   // Navigate to create station request page
   const handleCreateStationRequest = () => {
@@ -42,18 +43,18 @@ const StationMainPage = () => {
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <ScrollView style={styles.chargerList}>
-          {chargers.length === 0 ? (
-            <Text style={styles.noChargersText}>No chargers found.</Text>
-          ) : (
-            chargers.map((charger) => (
-              <View key={charger.id} style={styles.chargerItem}>
-                <Text style={styles.chargerName}>{charger.name}</Text>
-                <Text style={styles.chargerDetails}>{charger.location}</Text>
-                <Text style={styles.chargerDetails}>{charger.status}</Text>
-              </View>
-            ))
-          )}
-        </ScrollView>
+            {stations.length === 0 ? (
+                <Text style={styles.noChargersText}>No chargers found.</Text>
+            ) : (
+                stations.map((station) => (
+                <View key={station._id} style={styles.chargerItem}>
+                    <Text style={styles.chargerName}>{station.name}</Text>
+                    <Text style={styles.chargerDetails}>{station.description}</Text>
+                    <Text style={styles.chargerDetails}>{station.address}</Text>
+                </View>
+                ))
+            )}
+            </ScrollView>
       )}
     </View>
   );
