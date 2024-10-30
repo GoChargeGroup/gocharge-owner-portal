@@ -41,7 +41,7 @@ const SignIn = () => {
           text: 'OK',
           onPress: () => {
             handleCloseAlert();  
-            router.push('/main');  
+            router.push('(station)/main');  
           },
         },
       ]);

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const GlobalContext = createContext();
 export const useGlobalContext = () => useContext(GlobalContext);
@@ -11,17 +11,17 @@ export const GlobalProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-    //   const res = await getCurrentUser(); // change in the futue to actual login
-    const res = null;
-      if (res) {
+      // Retrieve user data from AsyncStorage on app start
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
         setIsLoggedIn(true);
-        setUser(res);
+        setUser(JSON.parse(storedUser));
       } else {
         setIsLoggedIn(false);
         setUser(null);
       }
     } catch (error) {
-      console.log(error);
+      console.error('Failed to fetch user data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -30,6 +30,21 @@ export const GlobalProvider = ({ children }) => {
   useEffect(() => {
     fetchUser();
   }, []);
+
+  // Update AsyncStorage whenever `user` or `isLoggedIn` changes
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      AsyncStorage.setItem('user', JSON.stringify(user));
+    } else {
+      AsyncStorage.removeItem('user'); // Clear storage on logout
+    }
+  }, [isLoggedIn, user]);
+
+  const logout = async () => {
+    setIsLoggedIn(false);
+    setUser(null);
+    await AsyncStorage.removeItem('user'); // Clear persistent storage on logout
+  };
 
   return (
     <GlobalContext.Provider
@@ -40,6 +55,7 @@ export const GlobalProvider = ({ children }) => {
         setUser,
         isLoading,
         fetchUser,
+        logout, // Provide logout functionality to clear state and storage
       }}
     >
       {children}

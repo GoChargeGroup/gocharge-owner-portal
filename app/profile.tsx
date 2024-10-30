@@ -7,6 +7,7 @@ import { AntDesign } from '@expo/vector-icons';
 import CustomButton from '@/components/CustomButton';
 // import { deleteUser, logout, sendDeleteVerification } from '@/lib/authService';
 import { useRouter } from 'expo-router';
+import { logout } from '@/lib/authService';
 
 const Profile = () => {
   const { user, setUser, setIsLoggedIn, isLoading } = useGlobalContext();
@@ -46,7 +47,7 @@ const Profile = () => {
 
   const onLogoutPress = async () => {
     try {
-    //   await logout();
+      await logout();
       setUser(null);
       setIsLoggedIn(false);
       router.replace('/sign-in');

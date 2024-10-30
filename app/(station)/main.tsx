@@ -1,10 +1,34 @@
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native-web';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { icons } from '@/constants';
 import { useRouter } from 'expo-router';
+import useRoleMiddleware from '@/hooks/useRoleMiddleware';
 
 const Main = () => {
   const router = useRouter();
+  const isAuthorized = useRoleMiddleware('owner');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (isAuthorized !== undefined) {
+      setIsLoading(false);
+    }
+  }, [isAuthorized]);
+
+  
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+ 
+  if (!isAuthorized) {
+    router.push('/unauthorized');
+    return null; 
+  }
 
   return (
     <ScrollView style={{ padding: 16 }}>
