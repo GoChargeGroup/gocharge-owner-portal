@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { addCharger } from '@/lib/authService';
+import { editCharger } from '@/lib/authService';
 import CustomAlert from '@/components/CustomAlert';
 import { useGlobalContext } from '@/context/GlobalProvider';
 
-const AddCharger = () => {
-  const { station_id} = useLocalSearchParams();
+const EditCharger = () => {
+  const { charger} = useLocalSearchParams();
+  const chargerData = JSON.parse(charger);
   const { getCallback } = useGlobalContext(); 
-const onChargerAdded = getCallback('onChargerAdded'); 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [kWhType, setKWhType] = useState('');
-  const [chargerType, setChargerType] = useState('');
-  const [price, setPrice] = useState('');
+  const onChargerEdited = getCallback('onChargerEdited');
+  const [name, setName] = useState(chargerData.name || '');
+  const [description, setDescription] = useState(chargerData.description || '');
+  const [kWhType, setKWhType] = useState(chargerData.kWh_types_id || '');
+  const [chargerType, setChargerType] = useState(chargerData.charger_types_id || '');
+  const [price, setPrice] = useState(String(chargerData.price || ''));
+  const [status, setStatus] = useState(chargerData.status || 'working');
   const [alert, setAlert] = useState({ visible: false, title: '', message: '', actions: [] });
+
   const router = useRouter();
 
   const showAlert = (title, message, actions = []) => {
@@ -44,7 +48,7 @@ const onChargerAdded = getCallback('onChargerAdded');
     return null;
   };
 
-  const handleAddCharger = async () => {
+  const handleEditCharger = async () => {
     const error = validateFields();
     if (error) {
       showAlert('Validation Error', error);
@@ -52,37 +56,39 @@ const onChargerAdded = getCallback('onChargerAdded');
     }
 
     try {
-      const chargerData = {
-        station_id,
+      const updatedCharger = {
+        _id: chargerData._id,
+        station_id: chargerData.station_id,
         name,
         description,
         kWh_types_id: kWhType,
         charger_types_id: chargerType,
         price: parseInt(price, 10),
+        status,
       };
 
-      const newCharger = await addCharger(chargerData);
-      if (onChargerAdded) {
-        onChargerAdded(newCharger); 
+      await editCharger(updatedCharger);
+      if (onChargerEdited) {
+        onChargerEdited(updatedCharger); 
       }
-      showAlert('Success', 'Charger added successfully', [
+      showAlert('Success', 'Charger updated successfully', [
         {
           text: 'OK',
           onPress: () => {
             handleCloseAlert();
-            router.back();
+            router.back(); // Navigate back to the previous page
           },
         },
       ]);
     } catch (error) {
-      console.error('Error adding charger:', error.message);
-      showAlert('Error', 'Failed to add charger. Please try again.');
+      console.error('Error editing charger:', error.message);
+      showAlert('Error', 'Failed to edit charger. Please try again.');
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Add New Charger</Text>
+      <Text style={styles.title}>Edit Charger</Text>
       <TextInput
         style={styles.input}
         placeholder="Name"
@@ -118,8 +124,19 @@ const onChargerAdded = getCallback('onChargerAdded');
         keyboardType="numeric"
         onChangeText={setPrice}
       />
-      <TouchableOpacity style={styles.addButton} onPress={handleAddCharger}>
-        <Text style={styles.addButtonText}>Add Charger</Text>
+      <View style={styles.pickerContainer}>
+        <Text style={styles.pickerLabel}>Status:</Text>
+        <Picker
+          selectedValue={status}
+          onValueChange={(itemValue) => setStatus(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Working" value="working" />
+          <Picker.Item label="Not Working" value="not working" />
+        </Picker>
+      </View>
+      <TouchableOpacity style={styles.saveButton} onPress={handleEditCharger}>
+        <Text style={styles.saveButtonText}>Save Changes</Text>
       </TouchableOpacity>
       <CustomAlert
         visible={alert.visible}
@@ -152,17 +169,30 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontSize: 16,
   },
-  addButton: {
+  pickerContainer: {
+    marginBottom: 16,
+  },
+  pickerLabel: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 8,
+  },
+  saveButton: {
     backgroundColor: '#4CAF50',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
-  addButtonText: {
+  saveButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
 });
 
-export default AddCharger;
+export default EditCharger;

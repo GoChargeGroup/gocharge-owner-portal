@@ -2,36 +2,59 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { getStationAndChargers } from '@/lib/authService';
+import { useGlobalContext } from '@/context/GlobalProvider';
 
 const StationDetails = () => {
- 
   const { station } = useLocalSearchParams();
   const stationData = JSON.parse(station);
   const [stationDetails, setStationDetails] = useState(null);
   const [chargers, setChargers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const handleAddCharger = () => {
-    router.push({
-      pathname: '(station)/add-charger',
-      params: { station_id: stationData._id },
-    });
+  const { setCallback } = useGlobalContext();
+  const fetchStationData = async () => {
+    try {
+      const data = await getStationAndChargers(stationData._id);
+      setStationDetails(data.station);
+      setChargers(data.chargers || []);
+    } catch (error) {
+      console.error('Error fetching station and chargers:', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
-  useEffect(() => {
-    const fetchStationData = async () => {
-      try {
-        console.log(stationData._id);
-        const data = await getStationAndChargers(stationData._id);
-        setStationDetails(data.station);
-        setChargers(data.chargers || []);
-      } catch (error) {
-        console.error('Error fetching station and chargers:', error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
 
+  useEffect(() => {
     fetchStationData();
   }, [stationData._id]);
+
+  const handleAddCharger = () => {
+    setCallback('onChargerAdded', (newCharger) => {
+      setChargers((prev) => [...prev, newCharger]); 
+    });
+  
+    router.push({
+      pathname: '(station)/add-charger',
+      params: {
+        station_id: stationData._id,
+      },
+    });
+  };
+  
+
+  const handleEditCharger = (charger) => {
+    setCallback('onChargerEdited', (updatedCharger) => {
+      setChargers((prev) =>
+        prev.map((item) => (item._id === updatedCharger._id ? updatedCharger : item))
+      );
+    });
+  
+    router.push({
+      pathname: '(station)/edit-charger',
+      params: {
+        charger: JSON.stringify(charger),
+      },
+    });
+  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -47,9 +70,11 @@ const StationDetails = () => {
 
           <Text style={styles.subtitle}>Address:</Text>
           <Text style={styles.text}>{stationDetails.address}</Text>
+
           <TouchableOpacity style={styles.addButton} onPress={handleAddCharger}>
             <Text style={styles.addButtonText}>Add Charger</Text>
           </TouchableOpacity>
+
           <Text style={styles.subtitle}>Chargers:</Text>
           {chargers.length > 0 ? (
             chargers.map((charger) => (
@@ -61,6 +86,12 @@ const StationDetails = () => {
                 <Text style={styles.chargerDetails}>Status: {charger.status}</Text>
                 <Text style={styles.chargerDetails}>Price: ${charger.price}</Text>
                 <Text style={styles.chargerDetails}>Total Payments: ${charger.total_payments}</Text>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => handleEditCharger(charger)}
+                >
+                  <Text style={styles.editButtonText}>Edit Charger</Text>
+                </TouchableOpacity>
               </View>
             ))
           ) : (
@@ -132,6 +163,18 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  editButton: {
+    backgroundColor: '#007EFF',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: '#fff',
+    fontSize: 14,
     fontWeight: 'bold',
   },
 });

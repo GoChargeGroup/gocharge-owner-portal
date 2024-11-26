@@ -8,7 +8,13 @@ export const GlobalProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [callbacks, setCallbacks] = useState({});
 
+
+  const setCallback = (key, callback) => {
+    setCallbacks((prev) => ({ ...prev, [key]: callback }));
+  };
+  const getCallback = (key) => callbacks[key];
   const fetchUser = async () => {
     try {
       // Retrieve user data from AsyncStorage on app start
@@ -55,7 +61,9 @@ export const GlobalProvider = ({ children }) => {
         setUser,
         isLoading,
         fetchUser,
-        logout, // Provide logout functionality to clear state and storage
+        logout,
+        setCallback,
+        getCallback, // Provide logout functionality to clear state and storage
       }}
     >
       {children}

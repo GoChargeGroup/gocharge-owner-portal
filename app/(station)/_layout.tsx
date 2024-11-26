@@ -11,6 +11,7 @@ const StationLayout = () => {
         <Stack.Screen name="station-main" options={{ headerShown: false}} />
         <Stack.Screen name="station-details" options={{ headerShown: false}} />
         <Stack.Screen name="add-charger" options={{ headerShown: false}} />
+        <Stack.Screen name="edit-charger" options={{ headerShown: false}} />
         <Stack.Screen name="create-station-request" options={{ headerShown: false}} />
         <Stack.Screen name="main" options={{ headerShown: false}} />
 
