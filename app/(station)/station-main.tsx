@@ -13,7 +13,6 @@ const StationMainPage = () => {
     const fetchChargers = async () => {
       try {
         const userStations = await getUserChargers(); 
-        console.log(userStations);
         setStations(userStations || []); 
       } catch (error) {
         console.error("Error fetching chargers:", error);
@@ -25,8 +24,13 @@ const StationMainPage = () => {
     fetchChargers();
   }, []);
   
-
-  // Navigate to create station request page
+  const handleStationClick = (station) => {
+    router.push({
+      pathname: '(station)/station-details',
+      params: { station: JSON.stringify(station) }, 
+    });
+  };
+ 
   const handleCreateStationRequest = () => {
     router.push('(station)/create-station-request');
   };
@@ -43,18 +47,22 @@ const StationMainPage = () => {
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <ScrollView style={styles.chargerList}>
-            {stations.length === 0 ? (
-                <Text style={styles.noChargersText}>No chargers found.</Text>
-            ) : (
-                stations.map((station) => (
-                <View key={station._id} style={styles.chargerItem}>
-                    <Text style={styles.chargerName}>{station.name}</Text>
-                    <Text style={styles.chargerDetails}>{station.description}</Text>
-                    <Text style={styles.chargerDetails}>{station.address}</Text>
-                </View>
-                ))
-            )}
-            </ScrollView>
+        {stations.length === 0 ? (
+          <Text style={styles.noChargersText}>No chargers found.</Text>
+        ) : (
+          stations.map((station) => (
+            <TouchableOpacity
+              key={station._id}
+              style={styles.chargerItem}
+              onPress={() => handleStationClick(station)}
+            >
+              <Text style={styles.chargerName}>{station.name}</Text>
+              <Text style={styles.chargerDetails}>{station.description}</Text>
+              <Text style={styles.chargerDetails}>{station.address}</Text>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
       )}
     </View>
   );
