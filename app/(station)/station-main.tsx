@@ -23,7 +23,12 @@ const StationMainPage = () => {
   
     fetchChargers();
   }, []);
-  
+  const handleEditStation = (station) => {
+    router.push({
+      pathname: '(station)/edit-station',
+      params: { station: JSON.stringify(station) }, 
+    });
+  };
   const handleStationClick = (station) => {
     router.push({
       pathname: '(station)/station-details',
@@ -51,6 +56,7 @@ const StationMainPage = () => {
           <Text style={styles.noChargersText}>No chargers found.</Text>
         ) : (
           stations.map((station) => (
+            <View key={station._id} style={styles.stationItem}>
             <TouchableOpacity
               key={station._id}
               style={styles.chargerItem}
@@ -60,6 +66,13 @@ const StationMainPage = () => {
               <Text style={styles.chargerDetails}>{station.description}</Text>
               <Text style={styles.chargerDetails}>{station.address}</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => handleEditStation(station)}
+              >
+                <Text style={styles.editButtonText}>Edit Station</Text>
+              </TouchableOpacity>
+            </View>
           ))
         )}
       </ScrollView>
@@ -115,6 +128,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#999',
     textAlign: 'center',
+  },
+  stationItem: {
+    marginBottom: 16,
+  },
+  editButton: {
+    backgroundColor: '#007EFF',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
 
