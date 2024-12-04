@@ -141,14 +141,14 @@ const EditStation = () => {
       />
       <TextInput
         style={styles.input}
-        placeholder="Longitude" // thats how
+        placeholder="Latitude" // thats how
         value={latitude}
         onChangeText={setLatitude}
         keyboardType="numeric"
       />
       <TextInput
         style={styles.input}
-        placeholder="Latitude" // i know
+        placeholder="Longitude" 
         value={longitude}
         onChangeText={setLongitude}
         keyboardType="numeric"
