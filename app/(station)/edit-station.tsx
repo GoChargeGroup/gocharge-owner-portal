@@ -14,6 +14,17 @@ const EditStation = () => {
   const [name, setName] = useState(stationData.name || '');
   const [description, setDescription] = useState(stationData.description || '');
   const [address, setAddress] = useState(stationData.address || '');
+  const [latitude, setLatitude] = useState(
+    stationData.coordinates && stationData.coordinates[1] !== undefined
+      ? stationData.coordinates[1].toString()
+      : ''
+  );
+  const [longitude, setLongitude] = useState(
+    stationData.coordinates && stationData.coordinates[0] !== undefined
+      ? stationData.coordinates[0].toString()
+      : ''
+  );
+  
   const [operationalHours, setOperationalHours] = useState(
     stationData.operational_hours || Array(7).fill([0, 0])
   );
@@ -39,6 +50,16 @@ const EditStation = () => {
     if (!address || address.length > 255) {
       return 'Address is required and should not exceed 255 characters.';
     }
+    const latitudeNum = parseFloat(latitude);
+    const longitudeNum = parseFloat(longitude);
+
+    if (isNaN(latitudeNum) || latitudeNum < -90 || latitudeNum > 90) {
+      return 'Latitude must be a number between -90 and 90.';
+    }
+    if (isNaN(longitudeNum) || longitudeNum < -180 || longitudeNum > 180) {
+      return 'Longitude must be a number between -180 and 180.';
+    }
+
     for (let i = 0; i < operationalHours.length; i++) {
       if (
         !Number.isInteger(operationalHours[i][0]) ||
@@ -66,6 +87,7 @@ const EditStation = () => {
         description,
         address,
         operational_hours: operationalHours,
+        coordinates: [parseFloat(longitude), parseFloat(latitude)],
       };
 
       console.log('Saving station:', updatedStation);
@@ -116,6 +138,20 @@ const EditStation = () => {
         placeholder="Address"
         value={address}
         onChangeText={setAddress}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Longitude" // thats how
+        value={latitude}
+        onChangeText={setLatitude}
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Latitude" // i know
+        value={longitude}
+        onChangeText={setLongitude}
+        keyboardType="numeric"
       />
 
       <Text style={styles.sectionTitle}>Operational Hours</Text>
