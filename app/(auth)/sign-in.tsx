@@ -71,6 +71,7 @@ const SignIn = () => {
               Power Up Your Journey. Join Us Today!
             </Text>
             <FormField
+              title="Username"
               placeholder="Username"
               value={form.username}
               handleChangeText={(e) => setForm({ ...form, username: e })}

@@ -32,6 +32,7 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(station)" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ headerShown: false }} />
+          <Stack.Screen name="genericFormProfile" options={{ headerShown: false }} />
         </Stack>
       </View>
     </GlobalProvider>

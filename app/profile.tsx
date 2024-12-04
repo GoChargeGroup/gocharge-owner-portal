@@ -59,8 +59,8 @@ const Profile = () => {
 
   const navigateToForm = (fieldName, fieldValue, displayName) => {
     router.push({
-      pathname: '/GenericFormProfile',
-      query: { fieldName, fieldValue, userId: user.$id, displayName },
+      pathname: '/genericFormProfile',
+      params: { fieldName, fieldValue, userId: user.$id, displayName },
     });
   };
 

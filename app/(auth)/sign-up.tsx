@@ -8,6 +8,7 @@ import CustomAlert from '@/components/CustomAlert';
 import { Link, router } from 'expo-router';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { signup } from '@/lib/authService';
+import { navigate } from 'expo-router/build/global-state/routing';
 
 const SignUp = () => {
   const { setUser, setIsLoggedIn } = useGlobalContext();
@@ -21,6 +22,9 @@ const SignUp = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [alert, setAlert] = useState({ visible: false, title: '', message: '', actions: [] });
+  const [securityQuestionsPage, setSecurityQuestionsPage] = useState(false);
+  const [answer1, setAnswer1] = useState('');
+  const [answer2, setAnswer2] = useState('');
 
   const showAlert = (title, message, actions = []) => {
     setAlert({ visible: true, title, message, actions });
@@ -32,7 +36,7 @@ const SignUp = () => {
 
   const submit = async () => {
     setModalVisible(false);
-    if (!form.username || !form.email || !form.password) {
+    if (!form.username || !form.email || !form.password|| !answer1 || !answer2) {
       showAlert('Error', 'Please fill in all the fields');
       return;
     }
@@ -41,7 +45,7 @@ const SignUp = () => {
     }
     setIsSubmitting(true);
     try {
-      const user = await signup(form.username, form.password, form.email.toLowerCase(), form.role);
+      const user = await signup(form.username, form.password, form.email.toLowerCase(), form.role, [answer1, answer2]);
       setIsLoggedIn(true);
       setUser(user);
       showAlert('Success', 'Your account has been successfully created', [
@@ -73,6 +77,7 @@ const SignUp = () => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}>
+        { !securityQuestionsPage ? (
           <View style={{ width: '100%', paddingHorizontal: 16, marginVertical: 24, flex: 1, alignItems: 'center' }}>
             <Text style={{ fontSize: 32, textAlign: 'center', color: '#000', fontWeight: '400', marginBottom: 8 }}>
               Power Up Your Journey. Join Us Today!
@@ -100,18 +105,70 @@ const SignUp = () => {
               formStyles={{ borderWidth: 2, borderColor: '#808080', borderRadius: 16 }}
               secureTextEntry={!passwordVisible}
             />
-            <View style={{ flexDirection: 'row', marginTop: 4 }}>
-              <Link href="sign-in" style={{ marginRight: 16, fontSize: 16, color: '#1E90FF' }}>
-                Back
-              </Link>
+            <View style={{flexDirection: "row", marginTop: 4, marginHorizontal: 10, alignItems: 'center', justifyContent: 'center'}}>
+              <CustomButton
+                title="Back"
+                handlePress={() => router.push('/(auth)/sign-in')}
+                containerStyles={{ marginTop: 16, marginRight: 16 }}
+              />
               <CustomButton
                 title="Create Account"
-                handlePress={() => setModalVisible(!isModalVisible)}
+                handlePress={() => setModalVisible(!isModalVisible)} 
                 containerStyles={{ marginTop: 16 }}
                 isLoading={isSubmitting}
               />
             </View>
-          </View>
+            </View>
+          ) : (
+            <View className="w-full px-4 my-6 flex-1 items-center">
+              <Text style={{
+                fontSize: 40,
+                textAlign: 'center',
+                fontWeight: 'bold',
+              }}>Almost there!</Text>
+              <Text style={{
+                fontSize: 20,
+                textAlign: 'center',
+                marginBottom: 16,
+              }}>Just answer a few security questions to finish signing up.</Text>
+              <Text style={{
+                fontSize: 15,
+                marginBottom: 4,
+                fontWeight: 'bold',
+              }}>Security Question 1</Text>
+              <Text style={{
+                fontSize: 15,
+                marginBottom: 12,
+              }}>What street did you grow up on?</Text>
+              <FormField
+                placeholder="Enter your answer"
+                value={answer1}
+                onChangeText={setAnswer1}
+                formStyles={{ borderWidth: 2, borderColor: '#808080', borderRadius: 16, marginBottom: 16 }}
+              />
+        
+              <Text style={{
+                fontSize: 15,
+                marginBottom: 4,
+                fontWeight: 'bold',
+              }}>Security Question 2</Text>
+              <Text style={{
+                fontSize: 15,
+                marginBottom: 12,
+              }}>What was the name of your first school?</Text>
+              <FormField
+                placeholder="Enter your answer"
+                value={answer2}
+                onChangeText={setAnswer2}
+                formStyles={{ borderWidth: 2, borderColor: '#808080', borderRadius: 16 }}
+              />
+        
+              <View style={{flexDirection: "row", marginTop: 20, marginHorizontal: 10}}>
+                <CustomButton title="Back" containerStyles={{width: "48%", marginRight: 8}} handlePress={() => setSecurityQuestionsPage(false)} />
+                <CustomButton title="Submit" containerStyles={{width: "48%", marginLeft: 8}} handlePress={submit} />
+              </View>
+            </View>
+          )}
           <Modal
             animationType="slide"
             transparent
@@ -133,8 +190,13 @@ const SignUp = () => {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.modalActions}>
-                  <CustomButton title="Back" handlePress={() => setModalVisible(false)} />
-                  <CustomButton title="Confirm" handlePress={submit} isLoading={isSubmitting} />
+                  <CustomButton title="Back" handlePress={() => setModalVisible(false)} containerStyles={{width: "48%"}} />
+                  <CustomButton title="Confirm" handlePress={() => { 
+                    if(!form.username || !form.email || !form.password) {
+                      showAlert('Error', 'Please fill in all the fields')
+                    } else {setSecurityQuestionsPage(!securityQuestionsPage); setModalVisible(false);}}}
+                    containerStyles={{width: "48%"}}
+                    isLoading={isSubmitting} />
                 </View>
               </View>
             </View>
