@@ -75,8 +75,9 @@ const SignIn = () => {
               placeholder="Username"
               value={form.username}
               handleChangeText={(e) => setForm({ ...form, username: e })}
-              otherStyles={{ marginTop: 16, width: '92%' }}
+              otherStyles={{ marginTop: 8, width: '92%' }}
               formStyles={{ borderWidth: 2, borderColor: '#808080', borderRadius: 16 }}
+              textStyles={{paddingTop: 16, paddingLeft: 19}}
               keyboardType="email-address"
             />
             <FormField
@@ -86,6 +87,7 @@ const SignIn = () => {
               handleChangeText={(e) => setForm({ ...form, password: e })}
               otherStyles={{ width: '92%', marginBottom: 8 }}
               formStyles={{ borderWidth: 2, borderColor: '#808080', borderRadius: 16 }}
+              textStyles={{padding: 19}}
               secureTextEntry
             />
             <CustomButton
