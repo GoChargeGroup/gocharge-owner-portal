@@ -83,17 +83,6 @@ const Profile = () => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
 
   useEffect(() => {
     let timer;
@@ -119,6 +108,18 @@ const Profile = () => {
     const seconds = time % 60;
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <ScrollView style={{ padding: 16 }}>

@@ -91,8 +91,9 @@ const genericFormProfile = () => {
     try {
       verifyInput();
       const updatedUser = await editUsername(otp, value);
+      console.log("updated user: ", updatedUser);
       setIsLoggedIn(true);
-      // setUser(updatedUser);
+      setUser(updatedUser);
       setUsernameModalVisible(false);
       showAlert('Success', 'Your username has been successfully updated.', [
         { text: 'OK', onPress: () => {
@@ -117,8 +118,9 @@ const genericFormProfile = () => {
     try {
       verifyInput();
       const updatedUser = await editEmail(value, [answer1, answer2]);
+      console.log(updatedUser);
       setIsLoggedIn(true);
-      // setUser(updatedUser);
+      setUser(updatedUser);
       setEmailModalVisible(false);
       showAlert('Success', 'Your email has been successfully updated.', [
         { text: 'OK', onPress: () => {
