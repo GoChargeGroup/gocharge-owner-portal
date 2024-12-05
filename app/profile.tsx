@@ -122,7 +122,7 @@ const Profile = () => {
   return (
     <ScrollView style={{ padding: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16 }}>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 24 }}>
+        <TouchableOpacity onPress={() => router.push('/(station)/main')} style={{ marginRight: 24 }}>
           <AntDesign name="arrowleft" size={24} color="black" />
         </TouchableOpacity>
         <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Profile</Text>

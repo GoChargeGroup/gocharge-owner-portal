@@ -72,11 +72,9 @@ const genericFormProfile = () => {
   const handleUpdateEmail = async () => {
     try {
       if (!verifyInput()) return;
-      console.log("user_id: ", user._id);
-      console.log("user_id2: " + user.id);
-      const updatedUser = await editEmail(user._id, value, [answer1, answer2]);
+      const updatedUser = await editEmail(value, [answer1, answer2]);
       setIsLoggedIn(true);
-      setUser(updatedUser);
+      // setUser(updatedUser);
       setEmailModalVisible(false);
       showAlert('Success', 'Your email has been successfully updated.', [
         { text: 'OK', onPress: () => {
@@ -87,6 +85,7 @@ const genericFormProfile = () => {
     } catch (error) {
       console.log(error);
       setEmailModalVisible(false);
+
       showAlert('Error', `${error}`, [
         { text: 'OK', onPress: () => {
           handleCloseAlert();
