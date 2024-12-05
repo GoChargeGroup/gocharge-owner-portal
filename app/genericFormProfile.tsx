@@ -13,7 +13,7 @@ import { editEmail, editUsername, sendEditUsernameVerification } from '@/lib/aut
 
 const genericFormProfile = () => {
   const navigation = useNavigation();
-  const { setUser, user } = useGlobalContext();
+  const { setUser, setIsLoggedIn } = useGlobalContext();
   const route = useRoute();
   const { fieldName, fieldValue, userId, displayName } = route.params;
   const [value, setValue] = useState(fieldValue);
@@ -35,21 +35,27 @@ const genericFormProfile = () => {
   const handleUpdateUsername = async () => {
     try {
       verifyInput();
-      await editUsername(otp, value);
+      const updatedUser = await editUsername(otp, value);
+      setIsLoggedIn(true);
+      setUser(updatedUser);
+
       Alert.alert('Success', 'Username updated successfully!');
-      router.replace('/profile');
+      router.back();
     } catch (error) {
       console.log(error);
       setUsernameModalVisible(false);
+
       Alert.alert('Error', 'Failed to update username. Please try again later.');
-      router.replace('/profile');
+      router.back();
     }
   };
 
   const handleUpdateEmail = async () => {
     try {
       if (!verifyInput()) return;
-      await editEmail(value, [answer1, answer2]);
+      const updatedUser = await editEmail(value, [answer1, answer2]);
+      setIsLoggedIn(true);
+      setUser(updatedUser);
       Alert.alert('Success', 'Email updated successfully!');
       router.replace('/profile');
     } catch (error) {
