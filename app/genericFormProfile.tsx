@@ -13,8 +13,8 @@ import { editEmail, editUsername, sendEditUsernameVerification } from '@/lib/aut
 import CustomAlert from '@/components/CustomAlert';
 
 const genericFormProfile = () => {
-  const navigation = useNavigation();
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
+  const navigation = useNavigation();
   const route = useRoute();
   const { fieldName, fieldValue, userId, displayName } = route.params;
   const [value, setValue] = useState(fieldValue);
@@ -22,6 +22,7 @@ const genericFormProfile = () => {
   const [emailModalVisible, setEmailModalVisible] = useState(false);
   const [alert, setAlert] = useState({ visible: false, title: '', message: '', actions: [] });
   const [otp, setOTP] = useState('');
+  const [otpExpiration, setOtpExpiration] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300);
   const [answer1, setAnswer1] = useState('');
   const [answer2, setAnswer2] = useState('');
@@ -36,63 +37,11 @@ const genericFormProfile = () => {
   
   const showEditUsernameModal = async () => {
     try {
-      await sendEditUsernameVerification();
+      setOtpExpiration(await sendEditUsernameVerification());
     } catch (error) {
       showAlert('Error', `${error}`);
     }
     setUsernameModalVisible(true);
-  };
-
-  const handleUpdateUsername = async () => {
-    try {
-      if (!verifyInput()) return;
-      const updatedUser = await editUsername(otp, value);
-      setIsLoggedIn(true);
-      setUser(updatedUser);
-      setUsernameModalVisible(false);
-      showAlert('Success', 'Your username has been successfully updated.', [
-        { text: 'OK', onPress: () => {
-          handleCloseAlert();
-          router.push('profile');
-        }},
-      ]);
-    } catch (error) {
-      console.log(error);
-      setUsernameModalVisible(false);
-
-      showAlert('Error', `${error}`, [
-        { text: 'OK', onPress: () => {
-          handleCloseAlert();
-          router.push('profile');
-        }},
-      ]);
-    }
-  };
-
-  const handleUpdateEmail = async () => {
-    try {
-      if (!verifyInput()) return;
-      const updatedUser = await editEmail(value, [answer1, answer2]);
-      setIsLoggedIn(true);
-      // setUser(updatedUser);
-      setEmailModalVisible(false);
-      showAlert('Success', 'Your email has been successfully updated.', [
-        { text: 'OK', onPress: () => {
-          handleCloseAlert();
-          router.push('profile');
-        }},
-      ]);
-    } catch (error) {
-      console.log(error);
-      setEmailModalVisible(false);
-
-      showAlert('Error', `${error}`, [
-        { text: 'OK', onPress: () => {
-          handleCloseAlert();
-          router.push('profile');
-        }},
-      ]);
-    }
   };
 
   function verifyInput() {
@@ -116,7 +65,7 @@ const genericFormProfile = () => {
   useEffect(() => {
     let timer;
     if (usernameModalVisible) {
-      setTimeLeft(300); 
+      setTimeLeft(otpExpiration - (Math.floor(Date.now() / 1000))); 
 
       timer = setInterval(() => {
         setTimeLeft((prevTime) => {
@@ -136,6 +85,58 @@ const genericFormProfile = () => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+  
+  const handleUpdateUsername = async () => {
+    try {
+      verifyInput();
+      const updatedUser = await editUsername(otp, value);
+      setIsLoggedIn(true);
+      // setUser(updatedUser);
+      setUsernameModalVisible(false);
+      showAlert('Success', 'Your username has been successfully updated.', [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('profile');
+        }},
+      ]);
+    } catch (error) {
+      console.log(error);
+      setUsernameModalVisible(false);
+
+      showAlert('Error', `${error}`, [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('profile');
+        }},
+      ]);
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    try {
+      verifyInput();
+      const updatedUser = await editEmail(value, [answer1, answer2]);
+      setIsLoggedIn(true);
+      // setUser(updatedUser);
+      setEmailModalVisible(false);
+      showAlert('Success', 'Your email has been successfully updated.', [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('profile');
+        }},
+      ]);
+    } catch (error) {
+      console.log(error);
+      setEmailModalVisible(false);
+
+      showAlert('Error', `${error}`, [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('profile');
+        }},
+      ]);
+    }
   };
 
   return (

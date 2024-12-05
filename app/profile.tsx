@@ -18,6 +18,7 @@ const Profile = () => {
   const [promotionsNotifications, setPromotionsNotifications] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [otp, setOTP] = useState('');
+  const [otpExpiration, setOtpExpiration] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300);
   const [alert, setAlert] = useState({ visible: false, title: '', message: '', actions: [] });
   const router = useRouter();
@@ -38,7 +39,7 @@ const Profile = () => {
 
   const showDeleteModal = async () => {
     try {
-      await sendDeleteVerification();
+      setOtpExpiration(await sendDeleteVerification());
     } catch (error) {
       showAlert('Error', `${error}`);
     }
@@ -97,7 +98,7 @@ const Profile = () => {
   useEffect(() => {
     let timer;
     if (modalVisible) {
-      setTimeLeft(300); 
+      setTimeLeft(otpExpiration - (Math.floor(Date.now() / 1000))); 
 
       timer = setInterval(() => {
         setTimeLeft((prevTime) => {
