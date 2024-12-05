@@ -8,6 +8,9 @@ import CustomButton from '@/components/CustomButton';
 // import { deleteUser, logout, sendDeleteVerification } from '@/lib/authService';
 import { useRouter } from 'expo-router';
 import { logout } from '@/lib/authService';
+import { OtpInput } from 'react-native-otp-entry';
+import { deleteUser, sendDeleteVerification } from '@/lib/authService';
+import CustomAlert from '@/components/CustomAlert';
 
 const Profile = () => {
   const { user, setUser, setIsLoggedIn, isLoading } = useGlobalContext();
@@ -15,6 +18,8 @@ const Profile = () => {
   const [promotionsNotifications, setPromotionsNotifications] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [otp, setOTP] = useState('');
+  const [timeLeft, setTimeLeft] = useState(300);
+  const [alert, setAlert] = useState({ visible: false, title: '', message: '', actions: [] });
   const router = useRouter();
 
   useEffect(() => {
@@ -23,25 +28,38 @@ const Profile = () => {
     }
   }, [user, isLoading]);
 
+  const showAlert = (title, message, actions = []) => {
+    setAlert({ visible: true, title, message, actions });
+  };
+
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, visible: false });
+  };
+
   const showDeleteModal = async () => {
     try {
-    //   await sendDeleteVerification();
+      await sendDeleteVerification();
     } catch (error) {
-      Alert.alert('Error', error.message);
+      showAlert('Error', `${error}`);
     }
     setModalVisible(true);
   };
 
   const handleDeleteAccount = async () => {
     try {
-    //   await deleteUser(otp);
+      await deleteUser(otp);
       setUser(null);
       setIsLoggedIn(false);
-      router.replace('/sign-in');
-      Alert.alert('Success', 'Account deleted successfully');
+      showAlert('Success', 'Account successfully deleted.', [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('/sign-in');
+        }},
+      ]);
     } catch (error) {
       console.log(error);
-      Alert.alert('Error', 'Failed to delete account. Please try again later.');
+      setModalVisible(false);
+      showAlert('Error', `${error}`);
     }
   };
 
@@ -53,7 +71,7 @@ const Profile = () => {
       router.replace('/sign-in');
     } catch (error) {
       console.error('Logout failed:', error);
-      Alert.alert('Error', 'Failed to log out. Please try again.');
+      showAlert('Error', "Failed to logout. Please try again.");
     }
   };
 
@@ -75,6 +93,31 @@ const Profile = () => {
   if (!user) {
     return null;
   }
+
+  useEffect(() => {
+    let timer;
+    if (modalVisible) {
+      setTimeLeft(300); 
+
+      timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            setModalVisible(false); 
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer); 
+  }, [modalVisible]);
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   return (
     <ScrollView style={{ padding: 16 }}>
@@ -142,9 +185,15 @@ const Profile = () => {
           <View style={{ width: 300, padding: 20, backgroundColor: 'white', borderRadius: 10, alignItems: 'center' }}>
             <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>Delete Account</Text>
             <Text style={{ color: 'red', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 6 }}>This action cannot be undone.</Text>
-            <Text style={{ fontSize: 16, textAlign: 'center', marginBottom: 16 }}>Check your email for a verification code.</Text>
-            <TextInput style={{ width: '100%', padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 5, marginBottom: 10, textAlign: 'center' }} placeholder="Enter verification code" placeholderTextColor="#888" keyboardType="numeric" value={otp} onChangeText={setOTP} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+            <Text style={{ fontSize: 16, textAlign: 'center'}}>Check your email for a verification code.</Text>
+            <Text style={{ fontSize: 16, marginBottom: 16, color: 'red' }}>
+              Code will expire in: {formatTime(timeLeft)}
+            </Text>
+            <OtpInput
+              numberOfDigits={5}
+              onTextChange={(otp) => { setOTP(otp) }}
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 16}}>
               <TouchableOpacity onPress={() => setModalVisible(false)} style={{ flex: 1, marginRight: 10, backgroundColor: '#ccc', padding: 10, borderRadius: 5, alignItems: 'center' }}>
                 <Text style={{ color: 'white', fontWeight: 'bold' }}>Cancel</Text>
               </TouchableOpacity>
@@ -155,8 +204,19 @@ const Profile = () => {
           </View>
         </View>
       </Modal>
+      <CustomAlert
+          visible={alert.visible}
+          title={alert.title}
+          message={alert.message}
+          onClose={handleCloseAlert}
+          actions={alert.actions}
+        />
     </ScrollView>
   );
 };
 
 export default Profile;
+function showAlert(arg0: string, arg1: string) {
+  throw new Error('Function not implemented.');
+}
+

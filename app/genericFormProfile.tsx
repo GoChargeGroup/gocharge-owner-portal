@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Modal } from 'react-native';
 import { OtpInput } from "react-native-otp-entry";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,59 +10,89 @@ import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler
 import { AntDesign } from '@expo/vector-icons';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { editEmail, editUsername, sendEditUsernameVerification } from '@/lib/authService';
+import CustomAlert from '@/components/CustomAlert';
 
 const genericFormProfile = () => {
   const navigation = useNavigation();
-  const { setUser, setIsLoggedIn } = useGlobalContext();
+  const { user, setUser, setIsLoggedIn } = useGlobalContext();
   const route = useRoute();
   const { fieldName, fieldValue, userId, displayName } = route.params;
   const [value, setValue] = useState(fieldValue);
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [alert, setAlert] = useState({ visible: false, title: '', message: '', actions: [] });
   const [otp, setOTP] = useState('');
+  const [timeLeft, setTimeLeft] = useState(300);
   const [answer1, setAnswer1] = useState('');
   const [answer2, setAnswer2] = useState('');
 
+  const showAlert = (title, message, actions = []) => {
+    setAlert({ visible: true, title, message, actions });
+  };
+
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, visible: false });
+  };
+  
   const showEditUsernameModal = async () => {
     try {
       await sendEditUsernameVerification();
     } catch (error) {
-      Alert.alert('Error', error.message);
+      showAlert('Error', `${error}`);
     }
     setUsernameModalVisible(true);
   };
 
   const handleUpdateUsername = async () => {
     try {
-      verifyInput();
+      if (!verifyInput()) return;
       const updatedUser = await editUsername(otp, value);
       setIsLoggedIn(true);
       setUser(updatedUser);
-
-      Alert.alert('Success', 'Username updated successfully!');
-      router.back();
+      setUsernameModalVisible(false);
+      showAlert('Success', 'Your username has been successfully updated.', [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('profile');
+        }},
+      ]);
     } catch (error) {
       console.log(error);
       setUsernameModalVisible(false);
 
-      Alert.alert('Error', 'Failed to update username. Please try again later.');
-      router.back();
+      showAlert('Error', `${error}`, [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('profile');
+        }},
+      ]);
     }
   };
 
   const handleUpdateEmail = async () => {
     try {
       if (!verifyInput()) return;
-      const updatedUser = await editEmail(value, [answer1, answer2]);
+      console.log("user_id: ", user._id);
+      console.log("user_id2: " + user.id);
+      const updatedUser = await editEmail(user._id, value, [answer1, answer2]);
       setIsLoggedIn(true);
       setUser(updatedUser);
-      Alert.alert('Success', 'Email updated successfully!');
-      router.replace('/profile');
+      setEmailModalVisible(false);
+      showAlert('Success', 'Your email has been successfully updated.', [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('profile');
+        }},
+      ]);
     } catch (error) {
       console.log(error);
       setEmailModalVisible(false);
-      Alert.alert('Error', 'Failed to update email. Please try again later.');
-      router.replace('/profile');
+      showAlert('Error', `${error}`, [
+        { text: 'OK', onPress: () => {
+          handleCloseAlert();
+          router.push('profile');
+        }},
+      ]);
     }
   };
 
@@ -71,18 +101,43 @@ const genericFormProfile = () => {
     switch (fieldName) {
       case ("username"):
         if (value.includes(' ')) {
-          Alert.alert("Error", "Username cannot contain spaces");
+          showAlert('Error', 'Username cannot contain spaces');
           return false;
         } else return true;
       case ("email"):
         if (!emailRegex.test(value)) {
-          Alert.alert("Error", "Email is invalid");
+          showAlert('Error', 'Email is invalid');
           return false;
         } else return true;
       default:
         return true;
     }
   }
+  
+  useEffect(() => {
+    let timer;
+    if (usernameModalVisible) {
+      setTimeLeft(300); 
+
+      timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            setUsernameModalVisible(false); 
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer); 
+  }, [usernameModalVisible]);
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 , marginTop: 50}}>
@@ -138,6 +193,9 @@ const genericFormProfile = () => {
                 </Text>
                 <Text style={{ fontSize: 16, textAlign: 'center', marginBottom: 10 }}>
                   Please check your email for a verification code.
+                </Text>
+                <Text style={{ fontSize: 16, marginBottom: 20, color: 'red' }}>
+                  Code will expire in: {formatTime(timeLeft)}
                 </Text>
                 <OtpInput
                   numberOfDigits={5}
@@ -278,6 +336,13 @@ const genericFormProfile = () => {
             </View>
           </Modal>
         </ScrollView>
+        <CustomAlert
+          visible={alert.visible}
+          title={alert.title}
+          message={alert.message}
+          onClose={handleCloseAlert}
+          actions={alert.actions}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );
